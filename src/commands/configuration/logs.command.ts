@@ -43,7 +43,9 @@ export default new Command({
 		if (!interaction.inCachedGuild()) return;
 
 		if (interaction.options.getSubcommand() === 'set') {
-			const channel = interaction.options.getChannel('channel');
+			const channel =
+				interaction.options.getChannel('channel') ||
+				interaction.channel;
 
 			if (
 				!channel

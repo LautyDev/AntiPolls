@@ -28,7 +28,9 @@ export default new ClientEvent({
 				},
 				{
 					name: 'Members',
-					value: guild.members.cache.size.toLocaleString('en-US'),
+					value: (await guild.fetch()).memberCount.toLocaleString(
+						'en-US'
+					),
 				},
 				{
 					name: 'Guilds',
