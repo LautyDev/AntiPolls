@@ -53,34 +53,53 @@ export default new ClientEvent({
 			await sendLogs(1);
 
 			switch (pollCount) {
-				case 3: {
-					message.member?.timeout(
-						10 * 60 * 1000,
-						'Abuse of polls on 3 occasions.'
-					);
-
-					await sendLogs(2, 'Abuse of polls on 3 occasions.', 10);
+				case 3:
+					message.member
+						?.timeout(
+							10 * 60 * 1000,
+							'Abuse of polls on 3 occasions.'
+						)
+						.then(
+							async () =>
+								await sendLogs(
+									2,
+									'Abuse of polls on 3 occasions.',
+									10
+								)
+						)
+						.catch(() => null);
 					break;
-				}
+				case 6:
+					message.member
+						?.timeout(
+							25 * 60 * 1000,
+							'Abuse of polls on 6 occasions.'
+						)
+						.then(
+							async () =>
+								await sendLogs(
+									2,
+									'Abuse of polls on 6 occasions.',
+									25
+								)
+						)
+						.catch(() => null);
 
-				case 6: {
-					message.member?.timeout(
-						25 * 60 * 1000,
-						'Abuse of polls on 6 occasions.'
-					);
-
-					await sendLogs(2, 'Abuse of polls on 6 occasions.', 25);
 					break;
-				}
-
-				case 9: {
-					message.member?.ban({
-						reason: 'Abuse of polls on multiple occasions.',
-					});
-
-					await sendLogs(3, 'Abuse of polls on multiple occasions.');
+				case 9:
+					message.member
+						?.ban({
+							reason: 'Abuse of polls on multiple occasions.',
+						})
+						.then(
+							async () =>
+								await sendLogs(
+									3,
+									'Abuse of polls on multiple occasions.'
+								)
+						)
+						.catch(() => null);
 					break;
-				}
 			}
 
 			setTimeout(
@@ -90,6 +109,8 @@ export default new ClientEvent({
 		}
 
 		async function sendLogs(type: number, reason?: string, time?: number) {
+			if (!logsData) return;
+
 			const formatEmbed = (): any => {
 				switch (type) {
 					case 1:
@@ -124,7 +145,7 @@ export default new ClientEvent({
 								},
 								{
 									name: 'Time',
-									value: `${time} minutes`,
+									value: `${time} minutes.`,
 								},
 							])
 							.setImage(Bars.Yellow)
@@ -155,9 +176,11 @@ export default new ClientEvent({
 				logsData?.channel as string
 			) as TextChannel;
 
-			logsChannel.send({
-				embeds: [formatEmbed()],
-			});
+			logsChannel
+				.send({
+					embeds: [formatEmbed()],
+				})
+				.catch(() => null);
 		}
 
 		return;
