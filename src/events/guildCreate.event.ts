@@ -47,7 +47,7 @@ export default new ClientEvent({
 		// Warning
 		let warningChannel = (await guild.channels.cache.find(
 			(channel) =>
-				channel.name === 'general' &&
+				channel.name.includes('general') &&
 				channel.type === ChannelType.GuildText
 		)) as TextChannel | undefined;
 
