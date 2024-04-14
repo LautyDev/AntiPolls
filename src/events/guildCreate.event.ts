@@ -27,8 +27,12 @@ export default new ClientEvent({
 					value: guild.name,
 				},
 				{
+					name: 'Members',
+					value: guild.members.cache.size.toLocaleString('en-US'),
+				},
+				{
 					name: 'Guilds',
-					value: client.guilds.cache.size.toString(),
+					value: client.guilds.cache.size.toLocaleString('en-US'),
 				},
 			])
 			.setImage(Bars.Green)
