@@ -3,7 +3,7 @@ export const developers = ['656842811496333322'];
 export const enum Bot {
 	Name = 'AntiPolls',
 	Id = '783788482778628147',
-	GuildId = '1061303396126167120',
+	GuildId = '1083872759953772574',
 	Invite = 'https://discord.com/oauth2/authorize?client_id=783788482778628147',
 }
 
