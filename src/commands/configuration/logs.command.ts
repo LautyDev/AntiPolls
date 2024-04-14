@@ -35,7 +35,7 @@ export default new Command({
 				option.setName('view').setDescription('View the logs channel.')
 			),
 	}),
-	run: async ({ interaction, reply }) => {
+	run: async ({ client, interaction, reply }) => {
 		await interaction.deferReply({
 			ephemeral: true,
 		});
@@ -44,6 +44,17 @@ export default new Command({
 
 		if (interaction.options.getSubcommand() === 'set') {
 			const channel = interaction.options.getChannel('channel');
+
+			if (
+				!channel
+					?.permissionsFor(client.user!)
+					?.has(['SendMessages', 'ViewChannel'])
+			)
+				return interaction.editReply(
+					reply.error(
+						`I do not have permissions to sent messages or view the ${channel} channel.`
+					)
+				);
 
 			try {
 				await new logs({
