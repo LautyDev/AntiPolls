@@ -119,6 +119,7 @@ export default new ClientEvent({
 							.setDescription(
 								`I deleted a poll on ${message.channel}.`
 							)
+							.setThumbnail(message.author?.avatarURL() as string)
 							.addFields([
 								{
 									name: 'User',
@@ -134,6 +135,7 @@ export default new ClientEvent({
 							.setDescription(
 								'I have muted a user for abusing the polls.'
 							)
+							.setThumbnail(message.author?.avatarURL() as string)
 							.addFields([
 								{
 									name: 'User',
@@ -157,6 +159,7 @@ export default new ClientEvent({
 							.setDescription(
 								'I have banned a user for abusing polls on many occasions.'
 							)
+							.setThumbnail(message.author?.avatarURL() as string)
 							.addFields([
 								{
 									name: 'User',
