@@ -2,6 +2,7 @@ import { EmbedBuilder, Events, TextChannel } from 'discord.js';
 import { ClientEvent } from '../classes/ClientEvent';
 import whitelistUser from '../models/whitelistUser';
 import whitelistRole from '../models/whitelistRole';
+import whitelistChannel from '../models/whitelistChannel';
 import logs from '../models/logs';
 import { Bars, Colors } from '../constants';
 
@@ -22,6 +23,10 @@ export default new ClientEvent({
 			guild: message.guild!.id,
 		});
 
+		const whitelistChannels = await whitelistChannel.find({
+			guild: message.guild!.id,
+		});
+
 		const logsData = await logs.findOne({
 			guild: message.guild!.id,
 		});
@@ -32,7 +37,8 @@ export default new ClientEvent({
 				inWhitelistUser ||
 				whitelistRoles.some((r) =>
 					message.member?.roles.cache.has(r.role)
-				)
+				) ||
+				whitelistChannels.some((c) => message.channel.id === c.channel)
 			)
 				return;
 
