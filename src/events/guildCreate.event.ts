@@ -47,11 +47,13 @@ export default new ClientEvent({
 			.catch(() => null);
 
 		// Warning
-		let warningChannel = (await guild.channels.cache.find(
-			(channel) =>
-				channel.name.includes('general') &&
-				channel.type === ChannelType.GuildText
-		)) as TextChannel | undefined;
+		let warningChannel = guild.channels.cache.find(
+			(c) =>
+				(c.name.includes('general') ||
+					c.name.includes('chat') ||
+					c.name.includes('main')) &&
+				c.type === ChannelType.GuildText
+		) as TextChannel | undefined;
 
 		if (
 			warningChannel &&
@@ -60,22 +62,28 @@ export default new ClientEvent({
 			warningChannel = undefined;
 
 		if (!warningChannel)
-			warningChannel = (await guild.channels.cache.find(
-				(channel) =>
-					channel.type === ChannelType.GuildText &&
-					channel.permissionsFor(client.user!)?.has('SendMessages')
-			)) as TextChannel;
+			guild.channels.cache
+				.filter((c) => c.type === ChannelType.GuildText)
+				.forEach((c) => {
+					if (
+						!warningChannel &&
+						c.permissionsFor(client.user!)?.has('SendMessages')
+					)
+						return (warningChannel = c as TextChannel);
+
+					return;
+				});
 
 		const warningEmbed = new EmbedBuilder()
 			.setTitle('Warning')
 			.setDescription(
-				'For my good performance I need to have a high role in this guild.'
+				'For my good performance I need to have a high role in this guild. Check my commands to get started.'
 			)
 			.setImage(Bars.Yellow)
 			.setColor(Colors.Main);
 
 		await warningChannel
-			.send({
+			?.send({
 				content: `${await guild.fetchOwner()}`,
 				embeds: [warningEmbed],
 			})

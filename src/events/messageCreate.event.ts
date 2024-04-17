@@ -1,10 +1,9 @@
-import { EmbedBuilder, Events, TextChannel } from 'discord.js';
+import { Events } from 'discord.js';
 import { ClientEvent } from '../classes/ClientEvent';
 import whitelistUser from '../models/whitelistUser';
 import whitelistRole from '../models/whitelistRole';
 import whitelistChannel from '../models/whitelistChannel';
-import logs from '../models/logs';
-import { Bars, Colors } from '../constants';
+import punishments from '../models/punishments';
 
 const userPollCount = new Map();
 
@@ -16,19 +15,15 @@ export default new ClientEvent({
 
 		const inWhitelistUser = await whitelistUser.findOne({
 			user: message.author.id,
-			guild: message.guild!.id,
+			guild: message.guild?.id,
 		});
 
 		const whitelistRoles = await whitelistRole.find({
-			guild: message.guild!.id,
+			guild: message.guild?.id,
 		});
 
 		const whitelistChannels = await whitelistChannel.find({
-			guild: message.guild!.id,
-		});
-
-		const logsData = await logs.findOne({
-			guild: message.guild!.id,
+			guild: message.guild?.id,
 		});
 
 		if (client.util.isPoll(message)) {
@@ -38,7 +33,7 @@ export default new ClientEvent({
 				whitelistRoles.some((r) =>
 					message.member?.roles.cache.has(r.role)
 				) ||
-				whitelistChannels.some((c) => message.channel.id === c.channel)
+				whitelistChannels.some((c) => message.channelId === c.channel)
 			)
 				return;
 
@@ -49,147 +44,123 @@ export default new ClientEvent({
 				)
 				.catch(() => null);
 
-			message.delete().catch(() => null);
+			try {
+				message.delete();
 
-			let pollCount = userPollCount.get(message.author.id) || 0;
-			pollCount++;
-
-			userPollCount.set(message.author.id, pollCount);
-
-			await sendLogs(1);
-
-			switch (pollCount) {
-				case 3:
-					message.member
-						?.timeout(
-							10 * 60 * 1000,
-							'Abuse of polls on 3 occasions.'
-						)
-						.then(
-							async () =>
-								await sendLogs(
-									2,
-									'Abuse of polls on 3 occasions.',
-									10
-								)
-						)
-						.catch(() => null);
-					break;
-				case 6:
-					message.member
-						?.timeout(
-							25 * 60 * 1000,
-							'Abuse of polls on 6 occasions.'
-						)
-						.then(
-							async () =>
-								await sendLogs(
-									2,
-									'Abuse of polls on 6 occasions.',
-									25
-								)
-						)
-						.catch(() => null);
-
-					break;
-				case 9:
-					message.member
-						?.ban({
-							reason: 'Abuse of polls on multiple occasions.',
-						})
-						.then(
-							async () =>
-								await sendLogs(
-									3,
-									'Abuse of polls on multiple occasions.'
-								)
-						)
-						.catch(() => null);
-					break;
+				await client.util.sendLogs({
+					type: 'delete-poll',
+					guild: message.guildId,
+					author: message.author,
+					authorAvatar: message.author.avatarURL(),
+					channel: message.channel,
+				});
+			} catch {
+				null;
 			}
 
-			setTimeout(
-				() => userPollCount.delete(message.author.id),
-				40 * 60 * 1000
+			let pollCount =
+				userPollCount.get(`${message.guildId}-${message.author.id}`) ||
+				0;
+			pollCount++;
+
+			userPollCount.set(
+				`${message.guildId}-${message.author.id}`,
+				pollCount
 			);
-		}
 
-		async function sendLogs(type: number, reason?: string, time?: number) {
-			if (!logsData) return;
+			const isPunishment = await punishments.findOne({
+				max_polls: pollCount,
+				guild: message.guild?.id,
+			});
 
-			const formatEmbed = (): any => {
-				switch (type) {
-					case 1:
-						return new EmbedBuilder()
-							.setTitle('Poll deleted')
-							.setDescription(
-								`I deleted a poll on ${message.channel}.`
-							)
-							.setThumbnail(message.author?.avatarURL() as string)
-							.addFields([
-								{
-									name: 'User',
-									value: `${message.author}`,
-								},
-							])
-							.setImage(Bars.Grey)
-							.setColor(Colors.Main);
+			if (isPunishment)
+				switch (isPunishment.type) {
+					case 'mute':
+						{
+							try {
+								message.member?.timeout(
+									isPunishment.time,
+									`${client.user?.displayName} - Punishment #${isPunishment.id}`
+								);
 
-					case 2:
-						return new EmbedBuilder()
-							.setTitle('User muted')
-							.setDescription(
-								'I have muted a user for abusing the polls.'
-							)
-							.setThumbnail(message.author?.avatarURL() as string)
-							.addFields([
-								{
-									name: 'User',
-									value: `${message.author}`,
-								},
-								{
-									name: 'Reason',
-									value: reason ?? '',
-								},
-								{
-									name: 'Time',
-									value: `${time} minutes.`,
-								},
-							])
-							.setImage(Bars.Yellow)
-							.setColor(Colors.Main);
+								await client.util.sendLogs({
+									type: 'mute',
+									guild: message.guildId,
+									author: message.author,
+									authorAvatar: message.author.avatarURL(),
+									channel: message.channel,
+									punishment: isPunishment.id,
+									time: client.util.parseMsToTime(
+										isPunishment.time
+									),
+								});
+							} catch {
+								null;
+							}
+						}
+						break;
 
-					case 3:
-						return new EmbedBuilder()
-							.setTitle('User banned')
-							.setDescription(
-								'I have banned a user for abusing polls on many occasions.'
-							)
-							.setThumbnail(message.author?.avatarURL() as string)
-							.addFields([
-								{
-									name: 'User',
-									value: `${message.author}`,
-								},
-								{
-									name: 'Reason',
-									value: reason ?? '',
-								},
-							])
-							.setImage(Bars.Red)
-							.setColor(Colors.Main);
+					case 'kick':
+						{
+							try {
+								message.member?.kick(
+									`${client.user?.displayName} - Punishment #${isPunishment.id}`
+								);
+
+								await client.util.sendLogs({
+									type: 'kick',
+									guild: message.guildId,
+									author: message.author,
+									authorAvatar: message.author.avatarURL(),
+									channel: message.channel,
+									punishment: isPunishment.id,
+								});
+							} catch {
+								null;
+							}
+						}
+						break;
+
+					case 'ban':
+						{
+							try {
+								message.member?.ban({
+									reason: `${client.user?.displayName} - Punishment #${isPunishment.id}`,
+								});
+
+								await client.util.sendLogs({
+									type: 'ban',
+									guild: message.guildId,
+									author: message.author,
+									authorAvatar: message.author.avatarURL(),
+									channel: message.channel,
+									punishment: isPunishment.id,
+								});
+							} catch {
+								null;
+							}
+						}
+						break;
 				}
-			};
 
-			const logsChannel = message.guild?.channels.cache.get(
-				logsData?.channel as string
-			) as TextChannel;
+			const mutePunishments = await punishments.find({
+				guild: message.guild?.id,
+				type: 'mute',
+			});
 
-			logsChannel
-				.send({
-					embeds: [formatEmbed()],
-				})
-				.catch(() => null);
+			const totalMuteTime = mutePunishments
+				? mutePunishments
+						.map((p) => p.time)
+						.reduce((total, time) => total + time, 0)
+				: 0;
+
+			setTimeout(
+				() =>
+					userPollCount.delete(
+						`${message.guildId}-${message.author.id}`
+					),
+				totalMuteTime + 5 * 60 * 1000
+			);
 		}
 
 		return;

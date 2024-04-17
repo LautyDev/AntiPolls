@@ -52,86 +52,102 @@ export default new Command({
 
 		if (!interaction.inCachedGuild()) return;
 
-		if (interaction.options.getSubcommand() === 'add') {
-			const channel = interaction.options.getChannel('channel');
+		switch (interaction.options.getSubcommand()) {
+			case 'add':
+				{
+					const channel = interaction.options.getChannel('channel');
 
-			const data = await whitelistChannel.findOne({
-				channel: channel?.id,
-				guild: interaction.guildId,
-			});
+					const data = await whitelistChannel.findOne({
+						channel: channel?.id,
+						guild: interaction.guildId,
+					});
 
-			if (data)
-				return interaction.editReply(
-					reply.error(`${channel} is already on the whitelist.`)
-				);
+					if (data)
+						return interaction.editReply(
+							reply.error(
+								`${channel} is already on the whitelist.`
+							)
+						);
 
-			try {
-				await new whitelistChannel({
-					channel: channel?.id,
-					guild: interaction.guildId,
-				}).save();
+					try {
+						await new whitelistChannel({
+							channel: channel?.id,
+							guild: interaction.guildId,
+						}).save();
 
-				await interaction.editReply(
-					reply.success(
-						`${channel} was added to the whitelist correctly.`
-					)
-				);
-			} catch {
-				interaction.editReply(
-					reply.success(
-						`An error occurred while trying to add ${channel} to the whitelist.`
-					)
-				);
-			}
-		} else if (interaction.options.getSubcommand() === 'remove') {
-			const channel = interaction.options.getChannel('channel');
+						interaction.editReply(
+							reply.success(
+								`${channel} was added to the whitelist correctly.`
+							)
+						);
+					} catch {
+						interaction.editReply(
+							reply.error(
+								`An error occurred while trying to add ${channel} to the whitelist.`
+							)
+						);
+					}
+				}
+				break;
 
-			const data = await whitelistChannel.findOne({
-				channel: channel?.id,
-				guild: interaction.guildId,
-			});
+			case 'remove':
+				{
+					const channel = interaction.options.getChannel('channel');
 
-			if (!data)
-				return interaction.editReply(
-					reply.error(`${channel} is not on the whitelist.`)
-				);
+					const data = await whitelistChannel.findOne({
+						channel: channel?.id,
+						guild: interaction.guildId,
+					});
 
-			try {
-				await whitelistChannel.findOneAndDelete({
-					channel: channel?.id,
-					guild: interaction.guildId,
-				});
+					if (!data)
+						return interaction.editReply(
+							reply.error(`${channel} is not on the whitelist.`)
+						);
 
-				await interaction.editReply(
-					reply.success(
-						`${channel} was removed to the whitelist correctly.`
-					)
-				);
-			} catch {
-				interaction.editReply(
-					reply.success(
-						`An error occurred while trying to remove ${channel} to the whitelist.`
-					)
-				);
-			}
-		} else if (interaction.options.getSubcommand() === 'view') {
-			const data = (
-				await whitelistChannel.find({
-					guild: interaction.guildId,
-				})
-			).map((c) => `<#${c.channel}>`);
+					try {
+						await whitelistChannel.findOneAndDelete({
+							channel: channel?.id,
+							guild: interaction.guildId,
+						});
 
-			const embed = new EmbedBuilder()
-				.setTitle(`Whitelist of ${interaction.guild.name} channels`)
-				.setDescription(
-					data.join('\n') || 'No channels on the whitelist.'
-				)
-				.setImage(Bars.Grey)
-				.setColor(Colors.Main);
+						interaction.editReply(
+							reply.success(
+								`${channel} was removed to the whitelist correctly.`
+							)
+						);
+					} catch {
+						interaction.editReply(
+							reply.error(
+								`An error occurred while trying to remove ${channel} to the whitelist.`
+							)
+						);
+					}
+				}
+				break;
 
-			interaction.editReply({
-				embeds: [embed],
-			});
+			case 'view':
+				{
+					const data = (
+						await whitelistChannel.find({
+							guild: interaction.guildId,
+						})
+					).map((c) => `<#${c.channel}>`);
+
+					const embed = new EmbedBuilder()
+						.setTitle(
+							`Whitelist of ${interaction.guild.name} channels`
+						)
+						.setDescription(
+							data.join('\n') || 'No channels on the whitelist.'
+						)
+						.setImage(Bars.Grey)
+						.setColor(Colors.Main);
+
+					interaction.editReply({
+						embeds: [embed],
+					});
+				}
+				break;
 		}
 
 		return;

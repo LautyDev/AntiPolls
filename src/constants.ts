@@ -2,7 +2,6 @@ export const developers = ['656842811496333322'];
 
 export const enum Bot {
 	Name = 'AntiPolls',
-	Id = '783788482778628147',
 	GuildId = '1083872759953772574',
 	Invite = 'https://discord.com/oauth2/authorize?client_id=783788482778628147',
 }
@@ -23,6 +22,7 @@ export const enum Colors {
 export const enum Bars {
 	Green = 'https://i.imgur.com/VaP5klt.png',
 	Red = 'https://i.imgur.com/Gj9rDwC.png',
+	Orange = 'https://i.imgur.com/atoxPIy.png',
 	Yellow = 'https://i.imgur.com/gFU1wPY.png',
 	Grey = 'https://i.imgur.com/IFJtymp.png',
 }

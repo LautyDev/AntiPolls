@@ -49,86 +49,101 @@ export default new Command({
 
 		if (!interaction.inCachedGuild()) return;
 
-		if (interaction.options.getSubcommand() === 'add') {
-			const role = interaction.options.getRole('role');
+		switch (interaction.options.getSubcommand()) {
+			case 'add':
+				{
+					const role = interaction.options.getRole('role');
 
-			const data = await whitelistRole.findOne({
-				role: role?.id,
-				guild: interaction.guildId,
-			});
+					const data = await whitelistRole.findOne({
+						role: role?.id,
+						guild: interaction.guildId,
+					});
 
-			if (data)
-				return interaction.editReply(
-					reply.error(`${role} is already on the whitelist.`)
-				);
+					if (data)
+						return interaction.editReply(
+							reply.error(`${role} is already on the whitelist.`)
+						);
 
-			try {
-				await new whitelistRole({
-					role: role?.id,
-					guild: interaction.guildId,
-				}).save();
+					try {
+						await new whitelistRole({
+							role: role?.id,
+							guild: interaction.guildId,
+						}).save();
 
-				await interaction.editReply(
-					reply.success(
-						`${role} was added to the whitelist correctly.`
-					)
-				);
-			} catch {
-				interaction.editReply(
-					reply.success(
-						`An error occurred while trying to add ${role} to the whitelist.`
-					)
-				);
-			}
-		} else if (interaction.options.getSubcommand() === 'remove') {
-			const role = interaction.options.getRole('role');
+						interaction.editReply(
+							reply.success(
+								`${role} was added to the whitelist correctly.`
+							)
+						);
+					} catch {
+						interaction.editReply(
+							reply.error(
+								`An error occurred while trying to add ${role} to the whitelist.`
+							)
+						);
+					}
+				}
+				break;
 
-			const data = await whitelistRole.findOne({
-				role: role?.id,
-				guild: interaction.guildId,
-			});
+			case 'remove':
+				{
+					const role = interaction.options.getRole('role');
 
-			if (!data)
-				return interaction.editReply(
-					reply.error(`${role} is not on the whitelist.`)
-				);
+					const data = await whitelistRole.findOne({
+						role: role?.id,
+						guild: interaction.guildId,
+					});
 
-			try {
-				await whitelistRole.findOneAndDelete({
-					role: role?.id,
-					guild: interaction.guildId,
-				});
+					if (!data)
+						return interaction.editReply(
+							reply.error(`${role} is not on the whitelist.`)
+						);
 
-				await interaction.editReply(
-					reply.success(
-						`${role} was removed to the whitelist correctly.`
-					)
-				);
-			} catch {
-				interaction.editReply(
-					reply.success(
-						`An error occurred while trying to remove ${role} to the whitelist.`
-					)
-				);
-			}
-		} else if (interaction.options.getSubcommand() === 'view') {
-			const data = (
-				await whitelistRole.find({
-					guild: interaction.guildId,
-				})
-			).map((r) => `<@&${r.role}>`);
+					try {
+						await whitelistRole.findOneAndDelete({
+							role: role?.id,
+							guild: interaction.guildId,
+						});
 
-			const embed = new EmbedBuilder()
-				.setTitle(`Whitelist of ${interaction.guild.name} roles`)
-				.setDescription(data.join('\n') || 'No roles on the whitelist.')
-				.setImage(Bars.Grey)
-				.setColor(Colors.Main);
+						interaction.editReply(
+							reply.success(
+								`${role} was removed to the whitelist correctly.`
+							)
+						);
+					} catch {
+						interaction.editReply(
+							reply.error(
+								`An error occurred while trying to remove ${role} to the whitelist.`
+							)
+						);
+					}
+				}
+				break;
 
-			interaction.editReply({
-				embeds: [embed],
-			});
+			case 'view':
+				{
+					const data = (
+						await whitelistRole.find({
+							guild: interaction.guildId,
+						})
+					).map((r) => `<@&${r.role}>`);
+
+					const embed = new EmbedBuilder()
+						.setTitle(
+							`Whitelist of ${interaction.guild.name} roles`
+						)
+						.setDescription(
+							data.join('\n') || 'No roles on the whitelist.'
+						)
+						.setImage(Bars.Grey)
+						.setColor(Colors.Main);
+
+					interaction.editReply({
+						embeds: [embed],
+					});
+				}
+				break;
 		}
-
 		return;
 	},
 });

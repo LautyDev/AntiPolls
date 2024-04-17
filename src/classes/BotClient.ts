@@ -3,7 +3,6 @@ import { ClientUtil } from './ClientUtil';
 import { EventManager } from '../managers/eventManager';
 import { EventHandler } from '../handlers/eventHandler';
 import { CommandManager } from '../managers/commandManager';
-import { Bot } from '../constants';
 
 export class BotClient extends Client {
 	util = new ClientUtil();
@@ -22,13 +21,16 @@ export class BotClient extends Client {
 
 		const rest = new REST().setToken(token);
 
-		await rest.put(Routes.applicationCommands(Bot.Id ?? ''), {
-			body: [
-				...this.managers.commandManager
-					.getCommands()
-					.map((cmd) => cmd.getConfig({ client: this }).slash),
-			],
-		});
+		await rest.put(
+			Routes.applicationCommands(process.env['CLIENT_ID'] ?? ''),
+			{
+				body: [
+					...this.managers.commandManager
+						.getCommands()
+						.map((cmd) => cmd.getConfig({ client: this }).slash),
+				],
+			}
+		);
 
 		console.log('[COMMANDS]'.red, 'Commands posted successfully.');
 

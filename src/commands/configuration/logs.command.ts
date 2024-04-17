@@ -3,6 +3,7 @@ import {
 	EmbedBuilder,
 	PermissionFlagsBits,
 	SlashCommandBuilder,
+	TextChannel,
 } from 'discord.js';
 import { Command } from '../../classes/Command';
 import logs from '../../models/logs';
@@ -42,79 +43,109 @@ export default new Command({
 
 		if (!interaction.inCachedGuild()) return;
 
-		if (interaction.options.getSubcommand() === 'set') {
-			const channel =
-				interaction.options.getChannel('channel') ||
-				interaction.channel;
+		switch (interaction.options.getSubcommand()) {
+			case 'set':
+				{
+					const channel = (interaction.options.getChannel(
+						'channel'
+					) || interaction.channel) as TextChannel;
 
-			if (
-				!channel
-					?.permissionsFor(client.user!)
-					?.has(['SendMessages', 'ViewChannel'])
-			)
-				return interaction.editReply(
-					reply.error(
-						`I do not have permissions to sent messages or view the ${channel} channel.`
+					if (
+						!interaction.guild.members.me?.permissions.has(
+							'ManageWebhooks'
+						)
 					)
-				);
+						return interaction.editReply(
+							reply.error(
+								`I don't have permissions to manage webhooks in ${channel}.`
+							)
+						);
 
-			try {
-				await new logs({
-					channel: channel?.id,
-					guild: interaction.guildId,
-				}).save();
+					try {
+						const webhookLogs = await channel.createWebhook({
+							name: 'AntiPolls Logs',
+							avatar: client.user?.avatarURL(),
+						});
 
-				await interaction.editReply(
-					reply.success(`${channel} was correctly seated.`)
-				);
-			} catch {
-				interaction.editReply(
-					reply.success(
-						`An error occurred while trying to set ${channel} as logs channel.`
-					)
-				);
-			}
-		} else if (interaction.options.getSubcommand() === 'remove') {
-			const data = await logs.findOne({
-				guild: interaction.guildId,
-			});
+						await new logs({
+							channel: channel?.id,
+							webhook_id: webhookLogs.id,
+							webhook_url: webhookLogs.url,
+							guild: interaction.guildId,
+						}).save();
 
-			if (!data)
-				return interaction.editReply(
-					reply.error(`No channel set as logs.`)
-				);
+						interaction.editReply(
+							reply.success(`${channel} was correctly seated.`)
+						);
+					} catch {
+						interaction.editReply(
+							reply.error(
+								`An error occurred while trying to set ${channel} as logs channel.`
+							)
+						);
+					}
+				}
+				break;
 
-			try {
-				await logs.findOneAndDelete({
-					guild: interaction.guildId,
-				});
+			case 'remove':
+				{
+					const data = await logs.findOne({
+						guild: interaction.guildId,
+					});
 
-				await interaction.editReply(
-					reply.success(`<#${data.channel}>  was removed correctly.`)
-				);
-			} catch {
-				interaction.editReply(
-					reply.success(
-						`An error occurred while trying to remove <#${data.channel}> as logs channel.`
-					)
-				);
-			}
-		} else if (interaction.options.getSubcommand() === 'view') {
-			const data = await logs.findOne({
-				guild: interaction.guildId,
-			});
+					if (!data)
+						return interaction.editReply(
+							reply.error(`No channel set as logs.`)
+						);
 
-			const embed = new EmbedBuilder()
-				.setTitle(`Logs channel of ${interaction.guild.name}`)
-				.setDescription(
-					`<#${data?.channel}>` || 'No channel set as logs.'
-				)
-				.setImage(Bars.Grey)
-				.setColor(Colors.Main);
+					try {
+						const channel = interaction.guild?.channels.cache.get(
+							data?.channel as string
+						) as TextChannel;
 
-			interaction.editReply({
-				embeds: [embed],
-			});
+						(await channel.fetchWebhooks())
+							.find((w) => w.id === data.webhook_id)
+							?.delete()
+							.catch(() => null);
+
+						await logs.findOneAndDelete({
+							guild: interaction.guildId,
+						});
+
+						interaction.editReply(
+							reply.success(
+								`<#${data.channel}>  was removed correctly.`
+							)
+						);
+					} catch {
+						interaction.editReply(
+							reply.error(
+								`An error occurred while trying to remove <#${data.channel}> as logs channel.`
+							)
+						);
+					}
+				}
+				break;
+
+			case 'view':
+				{
+					const data = await logs.findOne({
+						guild: interaction.guildId,
+					});
+
+					const embed = new EmbedBuilder()
+						.setTitle(`Logs channel of ${interaction.guild.name}`)
+						.setDescription(
+							`<#${data?.channel}>` || 'No channel set as logs.'
+						)
+						.setImage(Bars.Grey)
+						.setColor(Colors.Main);
+
+					interaction.editReply({
+						embeds: [embed],
+					});
+				}
+				break;
 		}
 
 		return;
