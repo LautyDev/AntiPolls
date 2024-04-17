@@ -63,6 +63,7 @@ export default new Command({
 						option
 							.setName('id')
 							.setDescription('ID of the punishment to edit.')
+							.setMinValue(1)
 							.setRequired(true)
 					)
 					.addStringOption((option) =>
@@ -110,6 +111,7 @@ export default new Command({
 						option
 							.setName('id')
 							.setDescription('ID of the punishment to remove.')
+							.setMinValue(1)
 							.setRequired(true)
 					)
 			)
