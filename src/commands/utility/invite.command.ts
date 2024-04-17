@@ -1,6 +1,7 @@
 import {
 	ActionRowBuilder,
 	ButtonBuilder,
+	ButtonStyle,
 	EmbedBuilder,
 	SlashCommandBuilder,
 } from 'discord.js';
@@ -26,9 +27,13 @@ export default new Command({
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
 			new ButtonBuilder()
 				.setLabel(`Invite ${Bot.Name}`)
+				.setStyle(ButtonStyle.Link)
 				.setURL(Bot.Invite),
 
-			new ButtonBuilder().setLabel(`Support`).setURL(Bot.Support)
+			new ButtonBuilder()
+				.setLabel(`Support`)
+				.setStyle(ButtonStyle.Link)
+				.setURL(Bot.Support)
 		);
 
 		interaction.editReply({
