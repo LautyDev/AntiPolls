@@ -31,9 +31,14 @@ export default new Command({
 				.setURL(Bot.Invite),
 
 			new ButtonBuilder()
-				.setLabel(`Support`)
+				.setLabel('Support')
 				.setStyle(ButtonStyle.Link)
-				.setURL(Bot.Support)
+				.setURL(Bot.Support),
+
+			new ButtonBuilder()
+				.setLabel('Vote')
+				.setStyle(ButtonStyle.Link)
+				.setURL(Bot.Vote)
 		);
 
 		interaction.editReply({

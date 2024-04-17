@@ -5,6 +5,7 @@ export const enum Bot {
 	GuildId = '1083872759953772574',
 	Invite = 'https://discord.com/oauth2/authorize?client_id=783788482778628147',
 	Support = 'https://discord.com/users/656842811496333322',
+	Vote = 'https://top.gg/bot/783788482778628147/vote',
 }
 
 export const enum Emojis {
