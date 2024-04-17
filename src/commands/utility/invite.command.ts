@@ -20,7 +20,7 @@ export default new Command({
 
 		const embed = new EmbedBuilder()
 			.setTitle(Bot.Name)
-			.setDescription(`Thank you for inviting ${Bot.Name}`)
+			.setDescription(`Thanks you for inviting ${Bot.Name}.`)
 			.setImage(Bars.Grey)
 			.setColor(Colors.Main);
 
