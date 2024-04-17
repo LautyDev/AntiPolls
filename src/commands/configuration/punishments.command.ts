@@ -435,7 +435,7 @@ export default new Command({
 						.setImage(Bars.Grey);
 
 					punishmentsInGuild.length > 0
-						? punishmentsInGuild.map((p) => {
+						? punishmentsInGuild.forEach((p) => {
 								p.type === 'mute'
 									? embed.addFields([
 											{

@@ -4,6 +4,7 @@ export const enum Bot {
 	Name = 'AntiPolls',
 	GuildId = '1083872759953772574',
 	Invite = 'https://discord.com/oauth2/authorize?client_id=783788482778628147',
+	Support = 'https://discord.com/users/656842811496333322',
 }
 
 export const enum Emojis {
@@ -15,8 +16,6 @@ export const enum Emojis {
 
 export const enum Colors {
 	Main = 0x2b2d31,
-	Success = 0x30b66a,
-	Error = 0xd62c3e,
 }
 
 export const enum Bars {

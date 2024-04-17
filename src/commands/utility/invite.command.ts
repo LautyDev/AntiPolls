@@ -1,4 +1,9 @@
-import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
+import {
+	ActionRowBuilder,
+	ButtonBuilder,
+	EmbedBuilder,
+	SlashCommandBuilder,
+} from 'discord.js';
 import { Command } from '../../classes/Command';
 import { Bars, Bot, Colors } from '../../constants';
 
@@ -10,18 +15,25 @@ export default new Command({
 			.setDescription('Get the bot invitation.'),
 	}),
 	run: async ({ interaction }) => {
-		await interaction.deferReply({
-			ephemeral: true,
-		});
+		await interaction.deferReply();
 
 		const embed = new EmbedBuilder()
-			.setTitle(`Invite ${Bot.Name}`)
-			.setDescription(`## [Click here.](${Bot.Invite})`)
+			.setTitle(Bot.Name)
+			.setDescription(`Thank you for inviting ${Bot.Name}`)
 			.setImage(Bars.Grey)
 			.setColor(Colors.Main);
 
+		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+			new ButtonBuilder()
+				.setLabel(`Invite ${Bot.Name}`)
+				.setURL(Bot.Invite),
+
+			new ButtonBuilder().setLabel(`Support`).setURL(Bot.Support)
+		);
+
 		interaction.editReply({
 			embeds: [embed],
+			components: [row],
 		});
 
 		return;
