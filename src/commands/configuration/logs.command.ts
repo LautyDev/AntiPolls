@@ -136,7 +136,9 @@ export default new Command({
 					const embed = new EmbedBuilder()
 						.setTitle(`Logs channel of ${interaction.guild.name}`)
 						.setDescription(
-							`<#${data?.channel}>` || 'No channel set as logs.'
+							data
+								? `<#${data?.channel}>`
+								: 'No channel set as logs.'
 						)
 						.setImage(Bars.Grey)
 						.setColor(Colors.Main);
